@@ -19,7 +19,8 @@ public class BinaryTree<T extends Comparable> {
     }
 
     public T min() {
-        if (root == null) return null;
+        if (root == null)
+            return null;
         Node<T> reference = root;
         while (reference.getLeft() != null) {
             reference = reference.getLeft();
@@ -28,14 +29,14 @@ public class BinaryTree<T extends Comparable> {
     }
 
     public T max() {
-        if (root == null) return null;
+        if (root == null)
+            return null;
         Node<T> reference = root;
         while (reference.getRight() != null) {
             reference = reference.getRight();
         }
         return reference.getData();
     }
-
 
     private Node<T> add(Node<T> root, T item) {
         if (root == null) {
@@ -56,7 +57,8 @@ public class BinaryTree<T extends Comparable> {
     }
 
     private int height(Node<T> root) {
-        if (root == null) return 0;
+        if (root == null)
+            return 0;
         return 1 + Math.max(height(root.getLeft()), height(root.getRight()));
     }
 

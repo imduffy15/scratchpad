@@ -1,19 +1,35 @@
-package ie.ianduffy.scratchpad.singlylinkedlist;
+package ie.ianduffy.scratchpad.linkedset;
 
 import lombok.Getter;
 import lombok.Setter;
 
-public class SinglyLinkedList<T> {
+public class LinkedSet<T> {
 
     private Node<T> head;
     private int size;
 
-    public SinglyLinkedList() {
+    public LinkedSet() {
         this.head = null;
         this.size = 0;
     }
 
-    public void add(T item) {
+    public boolean contains(T item) {
+        if (head == null)
+            return false;
+
+        Node<T> headReference = head;
+
+        while (headReference != null) {
+            if (headReference.getData().equals(item))
+                return true;
+            headReference = headReference.getPointer();
+        }
+
+        return false;
+    }
+
+    public boolean add(T item) {
+        if (contains(item)) return false;
         Node<T> nodeToAdd = new Node<>(item);
         if (head == null) head = nodeToAdd;
         else {
@@ -22,6 +38,7 @@ public class SinglyLinkedList<T> {
             reference.setPointer(nodeToAdd);
         }
         size++;
+        return true;
     }
 
     public T get(int index) {

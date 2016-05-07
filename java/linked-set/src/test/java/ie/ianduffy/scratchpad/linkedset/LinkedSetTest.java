@@ -1,15 +1,16 @@
-package ie.ianduffy.scratchpad.doublylinkedlist;
+package ie.ianduffy.scratchpad.linkedset;
 
 import org.junit.Test;
 
-public class DoublyLinkedListTest {
+public class LinkedSetTest {
 
     @Test
     public void testAddingToALinkedList() {
-        DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
+        LinkedSet<Integer> list = new LinkedSet<>();
 
-        list.add(10);
-        list.add(20);
+        assert list.add(10) == true;
+        assert list.add(20) == true;
+        assert list.add(10) == false;
 
         assert list.get(0) == 10;
         assert list.get(1) == 20;
@@ -19,9 +20,10 @@ public class DoublyLinkedListTest {
 
     @Test
     public void testRemovingSingleElementFromALinkedList() {
-        DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
+        LinkedSet<Integer> list = new LinkedSet<>();
 
-        list.add(10);
+        assert list.add(10) == true;
+        assert list.add(10) == false;
 
         assert list.get(0) == 10;
         assert list.size() == 1;
@@ -32,11 +34,12 @@ public class DoublyLinkedListTest {
 
     @Test
     public void testRemovingElementsFromALinkedList() {
-        DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
+        LinkedSet<Integer> list = new LinkedSet<>();
 
-        list.add(10);
-        list.add(20);
-        list.add(30);
+        assert list.add(10) == true;
+        assert list.add(20) == true;
+        assert list.add(30) == true;
+        assert list.add(10) == false;
 
         assert list.get(0) == 10;
         assert list.get(1) == 20;

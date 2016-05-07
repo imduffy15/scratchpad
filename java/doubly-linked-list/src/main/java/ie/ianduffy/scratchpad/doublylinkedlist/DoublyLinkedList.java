@@ -26,7 +26,8 @@ public class DoublyLinkedList<T> {
     }
 
     public T get(int index) {
-        if (index < 0 || index > size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index > size)
+            throw new IndexOutOfBoundsException();
 
         Node<T> headReference = head;
         for (int i = 0; i < index; i++) {
@@ -37,7 +38,8 @@ public class DoublyLinkedList<T> {
     }
 
     public void remove(int index) {
-        if (index < 0 || index > size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index > size)
+            throw new IndexOutOfBoundsException();
 
         Node<T> headReference = head;
         for (int i = 0; i < index; i++) {

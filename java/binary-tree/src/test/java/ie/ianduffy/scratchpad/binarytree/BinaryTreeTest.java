@@ -4,7 +4,6 @@ import org.junit.Test;
 
 public class BinaryTreeTest {
 
-
     @Test
     public void testAddingToABinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();

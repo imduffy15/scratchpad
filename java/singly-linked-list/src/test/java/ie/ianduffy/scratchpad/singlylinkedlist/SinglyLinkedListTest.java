@@ -4,7 +4,6 @@ import org.junit.Test;
 
 public class SinglyLinkedListTest {
 
-
     @Test
     public void testAddingToALinkedList() {
         SinglyLinkedList<Integer> list = new SinglyLinkedList<>();

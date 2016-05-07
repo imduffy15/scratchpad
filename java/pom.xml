@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ie.ianduffy</groupId>
@@ -11,6 +12,10 @@
         <module>singly-linked-list</module>
         <module>doubly-linked-list</module>
         <module>binary-tree</module>
+        <module>linked-set</module>
+        <module>stack</module>
+        <module>queue</module>
+        <module>hash-set</module>
     </modules>
 
     <properties>
@@ -34,6 +39,7 @@
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -58,6 +64,18 @@
                     <keepBlankLines>true</keepBlankLines>
                     <expandEmptyElements>false</expandEmptyElements>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>0.5.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
