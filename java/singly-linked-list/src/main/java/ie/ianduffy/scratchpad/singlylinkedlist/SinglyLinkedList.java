@@ -2,9 +2,7 @@ package ie.ianduffy.scratchpad.singlylinkedlist;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-@ToString
 public class SinglyLinkedList<T> {
 
     private Node<T> head;
@@ -44,10 +42,10 @@ public class SinglyLinkedList<T> {
             reference = reference.getPointer();
         }
 
-        if (nodeBeforeNodeToBeDeleted == head) {
+        if (reference == head) {
             head = head.getPointer();
         } else {
-            nodeBeforeNodeToBeDeleted = reference.getPointer();
+            nodeBeforeNodeToBeDeleted.setPointer(reference.getPointer());
         }
 
         size--;
@@ -57,7 +55,6 @@ public class SinglyLinkedList<T> {
         return size;
     }
 
-    @ToString
     private class Node<T> {
         @Getter
         private T data;

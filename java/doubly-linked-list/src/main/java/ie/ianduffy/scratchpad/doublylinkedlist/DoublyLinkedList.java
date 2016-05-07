@@ -2,9 +2,7 @@ package ie.ianduffy.scratchpad.doublylinkedlist;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-@ToString
 public class DoublyLinkedList<T> {
 
     private Node<T> head;
@@ -32,7 +30,7 @@ public class DoublyLinkedList<T> {
 
         Node<T> headReference = head;
         for (int i = 0; i < index; i++) {
-            headReference = head.getNext();
+            headReference = headReference.getNext();
         }
 
         return headReference.getData();
@@ -43,7 +41,7 @@ public class DoublyLinkedList<T> {
 
         Node<T> headReference = head;
         for (int i = 0; i < index; i++) {
-            headReference = head.getNext();
+            headReference = headReference.getNext();
         }
 
         if (headReference == head) {
@@ -59,7 +57,6 @@ public class DoublyLinkedList<T> {
         return size;
     }
 
-    @ToString
     private class Node<T> {
         @Getter
         private T data;
@@ -69,7 +66,6 @@ public class DoublyLinkedList<T> {
         private Node<T> next = null;
 
         @Getter
-        @Setter
         private Node<T> previous = null;
 
         public Node(T data, Node<T> previous) {
