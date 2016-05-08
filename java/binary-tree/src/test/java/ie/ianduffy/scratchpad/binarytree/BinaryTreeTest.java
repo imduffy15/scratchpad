@@ -69,8 +69,7 @@ public class BinaryTreeTest {
         assert binaryTree.max() == 100;
 
     }
-
-    @Test
+	@Test
     public void testPreOrder() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
         binaryTree.add(7);
@@ -98,8 +97,7 @@ public class BinaryTreeTest {
         assert result.get(9) == 8;
         assert result.get(10) == 10;
     }
-
-    @Test
+	@Test
     public void testInorder() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
         binaryTree.add(7);
@@ -128,8 +126,7 @@ public class BinaryTreeTest {
         assert result.get(10) == 10;
     }
 
-
-    @Test
+	@Test
     public void testPostOrder() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
         binaryTree.add(7);
@@ -156,5 +153,34 @@ public class BinaryTreeTest {
         assert result.get(8) == 10;
         assert result.get(9) == 9;
         assert result.get(10) == 7;
+    }
+	@Test
+    public void testBreathFirst() {
+        BinaryTree<Integer> binaryTree = new BinaryTree<>();
+        binaryTree.add(7);
+        binaryTree.add(1);
+        binaryTree.add(0);
+        binaryTree.add(3);
+        binaryTree.add(2);
+        binaryTree.add(5);
+        binaryTree.add(4);
+        binaryTree.add(6);
+        binaryTree.add(9);
+        binaryTree.add(8);
+        binaryTree.add(10);
+
+        List<Integer> result = binaryTree.breadthFirst();
+
+        assert result.get(0) == 7;
+        assert result.get(1) == 1;
+        assert result.get(2) == 9;
+        assert result.get(3) == 0;
+        assert result.get(4) == 3;
+        assert result.get(5) == 8;
+        assert result.get(6) == 10;
+        assert result.get(7) == 2;
+        assert result.get(8) == 5;
+        assert result.get(9) == 4;
+        assert result.get(10) == 6;
     }
 }

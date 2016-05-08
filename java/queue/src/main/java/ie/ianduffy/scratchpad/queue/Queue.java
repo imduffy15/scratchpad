@@ -12,7 +12,7 @@ public class Queue<T> {
 		queue = (T[]) (new Object[size]);;
 	}
 
-	private boolean isEmpty() {
+	public boolean isEmpty() {
 		return size == 0;
 	}
 

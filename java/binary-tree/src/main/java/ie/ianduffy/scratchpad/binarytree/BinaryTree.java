@@ -1,5 +1,6 @@
 package ie.ianduffy.scratchpad.binarytree;
 
+import ie.ianduffy.scratchpad.queue.Queue;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -87,30 +88,51 @@ public class BinaryTree<T extends Comparable> {
 
 	public List<T> preOrder(Node<T> root, List<T> results) {
 		results.add(root.getData());
-		if(root.getLeft() != null) preOrder(root.getLeft(), results);
-		if(root.getRight() != null) preOrder(root.getRight(), results);
+		if (root.getLeft() != null)
+			preOrder(root.getLeft(), results);
+		if (root.getRight() != null)
+			preOrder(root.getRight(), results);
 		return results;
 	}
 
-    public List<T> inOrder() {
-        return inOrder(root, new ArrayList<T>());
-    }
+	public List<T> inOrder() {
+		return inOrder(root, new ArrayList<T>());
+	}
 
-    public List<T> inOrder(Node<T> root, List<T> results) {
-        if(root.getLeft() != null) inOrder(root.getLeft(), results);
-        results.add(root.getData());
-        if(root.getRight() != null) inOrder(root.getRight(), results);
-        return results;
-    }
+	public List<T> inOrder(Node<T> root, List<T> results) {
+		if (root.getLeft() != null)
+			inOrder(root.getLeft(), results);
+		results.add(root.getData());
+		if (root.getRight() != null)
+			inOrder(root.getRight(), results);
+		return results;
+	}
 
-    public List<T> postOrder() {
-        return postOrder(root, new ArrayList<T>());
-    }
+	public List<T> postOrder() {
+		return postOrder(root, new ArrayList<T>());
+	}
 
-    public List<T> postOrder(Node<T> root, List<T> results) {
-        if(root.getLeft() != null) postOrder(root.getLeft(), results);
-        if(root.getRight() != null) postOrder(root.getRight(), results);
-        results.add(root.getData());
+	public List<T> postOrder(Node<T> root, List<T> results) {
+		if (root.getLeft() != null)
+			postOrder(root.getLeft(), results);
+		if (root.getRight() != null)
+			postOrder(root.getRight(), results);
+		results.add(root.getData());
+		return results;
+	}
+
+	public List<T> breadthFirst() {
+        Queue<Node<T>> queue = new Queue<>(1024);
+        List<T> results = new ArrayList<>();
+        queue.enq(root);
+        while (!queue.isEmpty()) {
+            Node<T> node = queue.deq();
+            if (node != null) {
+                results.add(node.getData());
+                queue.enq(node.getLeft());
+                queue.enq(node.getRight());
+            }
+        }
         return results;
     }
 
