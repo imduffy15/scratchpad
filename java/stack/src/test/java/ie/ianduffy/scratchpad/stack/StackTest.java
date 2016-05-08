@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class StackTest {
 
-    @Test
+	@Test
     public void canPushToAndPopFromTheStack() {
         Stack<Integer> stack = new Stack<>();
 

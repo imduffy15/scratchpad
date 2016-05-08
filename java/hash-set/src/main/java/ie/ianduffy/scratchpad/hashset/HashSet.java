@@ -1,30 +1,35 @@
 package ie.ianduffy.scratchpad.hashset;
 
-import java.util.ArrayList;
-import java.util.List;
+import ie.ianduffy.scratchpad.linkedset.LinkedSet;
 
 public class HashSet<T> {
 
-    private int size = 0;
-    private List<T> list = new ArrayList();
+	private LinkedSet<T>[] hashTable;
 
-    public Stack() {
-
+	HashSet(int size) {
+        hashTable = (LinkedSet<T>[]) (new LinkedSet[size]);
+        for (int i = 0; i < size; i++) {
+            hashTable[i] = new LinkedSet<>();
+        }
     }
+	private int hashCode(T item) {
+		return Math.abs(item.hashCode() % hashTable.length);
+	}
 
-    public Boolean isEmpty() {
-        return size == 0;
-    }
+	public void add(T item) {
+		hashTable[hashCode(item)].add(item);
+	}
 
-    public void push(T item) {
-        list.add(item);
-        size++;
-    }
+	public boolean contains(T item) {
+		return hashTable[hashCode(item)].contains(item);
+	}
 
-    public T pop() {
-        if (isEmpty())
-            return null;
-        size--;
-        return list.get(size);
-    }
+	public int size() {
+		int size = 0;
+		for (int i = 0; i < hashTable.length; i++) {
+			size = size + hashTable[i].size();
+		}
+		return size;
+	}
+
 }

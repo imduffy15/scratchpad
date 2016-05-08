@@ -4,18 +4,23 @@ import org.junit.Test;
 
 public class HashSetTest {
 
-    @Test
-    public void canPushToAndPopFromTheStack() {
-        Stack<Integer> stack = new Stack<>();
+	@Test
+    public void canAddToAHashSet() {
+        HashSet<Integer> hashSet = new HashSet<>(2);
 
-        stack.push(10);
-        stack.push(20);
-        stack.push(30);
-        stack.push(40);
+        for (int i = 0; i < 999; i++) {
+            hashSet.add((int) (Math.random() * 100));
+        }
 
-        assert stack.pop() == 40;
-        assert stack.pop() == 30;
-        assert stack.pop() == 20;
-        assert stack.pop() == 10;
+        assert hashSet.size() == 100;
+    }
+	@Test
+    public void canCheckIfAHashSetContainsElementX() {
+        HashSet<Integer> hashSet = new HashSet<>(2);
+
+        hashSet.add(10);
+
+        assert hashSet.contains(10) == true;
+        assert hashSet.contains(1) == false;
     }
 }

@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class LinkedSetTest {
 
-    @Test
+	@Test
     public void testAddingToALinkedList() {
         LinkedSet<Integer> list = new LinkedSet<>();
 
@@ -17,8 +17,7 @@ public class LinkedSetTest {
         assert list.size() == 2;
 
     }
-
-    @Test
+	@Test
     public void testRemovingSingleElementFromALinkedList() {
         LinkedSet<Integer> list = new LinkedSet<>();
 
@@ -31,8 +30,7 @@ public class LinkedSetTest {
         list.remove(0);
         assert list.size() == 0;
     }
-
-    @Test
+	@Test
     public void testRemovingElementsFromALinkedList() {
         LinkedSet<Integer> list = new LinkedSet<>();
 

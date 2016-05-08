@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class SinglyLinkedListTest {
 
-    @Test
+	@Test
     public void testAddingToALinkedList() {
         SinglyLinkedList<Integer> list = new SinglyLinkedList<>();
 
@@ -16,8 +16,7 @@ public class SinglyLinkedListTest {
         assert list.size() == 2;
 
     }
-
-    @Test
+	@Test
     public void testRemovingSingleElementFromALinkedList() {
         SinglyLinkedList<Integer> list = new SinglyLinkedList<>();
 
@@ -29,8 +28,7 @@ public class SinglyLinkedListTest {
         list.remove(0);
         assert list.size() == 0;
     }
-
-    @Test
+	@Test
     public void testRemovingElementsFromALinkedList() {
         SinglyLinkedList<Integer> list = new SinglyLinkedList<>();
 

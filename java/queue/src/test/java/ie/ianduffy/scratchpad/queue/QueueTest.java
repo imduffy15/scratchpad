@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class QueueTest {
 
-    @Test
+	@Test
     public void canEnqAndDeqFromAQueue() {
         Queue<Integer> queue = new Queue<>(3);
 

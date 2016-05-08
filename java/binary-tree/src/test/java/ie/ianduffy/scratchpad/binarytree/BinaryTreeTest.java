@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class BinaryTreeTest {
 
-    @Test
+	@Test
     public void testAddingToABinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
 
@@ -15,8 +15,7 @@ public class BinaryTreeTest {
 
         assert binaryTree.size() == 3;
     }
-
-    @Test
+	@Test
     public void testHeightCalculationOfABinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
 
@@ -26,8 +25,7 @@ public class BinaryTreeTest {
 
         assert binaryTree.height() == 2;
     }
-
-    @Test
+	@Test
     public void testElementContainedWithinBinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
 
@@ -40,8 +38,7 @@ public class BinaryTreeTest {
         assert binaryTree.contains(12) == true;
         assert binaryTree.contains(100) == false;
     }
-
-    @Test
+	@Test
     public void testGettingTheMinimumElementWithinABinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
 
@@ -55,8 +52,7 @@ public class BinaryTreeTest {
         assert binaryTree.min() == -1;
 
     }
-
-    @Test
+	@Test
     public void testGettingTheMaximumElementWithinABinaryTree() {
         BinaryTree<Integer> binaryTree = new BinaryTree<>();
 

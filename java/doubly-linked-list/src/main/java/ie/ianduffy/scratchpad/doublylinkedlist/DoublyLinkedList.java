@@ -5,16 +5,16 @@ import lombok.Setter;
 
 public class DoublyLinkedList<T> {
 
-    private Node<T> head;
-    private Node<T> tail;
+	private Node<T> head;
+	private Node<T> tail;
 
-    private int size;
+	private int size;
 
-    public DoublyLinkedList() {
+	public DoublyLinkedList() {
 
-    }
+	}
 
-    public void add(T item) {
+	public void add(T item) {
         Node<T> nodeToAdd = new Node<>(item, tail);
         if (head == null) {
             head = nodeToAdd;
@@ -24,55 +24,54 @@ public class DoublyLinkedList<T> {
         tail = nodeToAdd;
         size++;
     }
+	public T get(int index) {
+		if (index < 0 || index > size)
+			throw new IndexOutOfBoundsException();
 
-    public T get(int index) {
-        if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException();
+		Node<T> headReference = head;
+		for (int i = 0; i < index; i++) {
+			headReference = headReference.getNext();
+		}
 
-        Node<T> headReference = head;
-        for (int i = 0; i < index; i++) {
-            headReference = headReference.getNext();
-        }
+		return headReference.getData();
+	}
 
-        return headReference.getData();
-    }
+	public void remove(int index) {
+		if (index < 0 || index > size)
+			throw new IndexOutOfBoundsException();
 
-    public void remove(int index) {
-        if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException();
+		Node<T> headReference = head;
+		for (int i = 0; i < index; i++) {
+			headReference = headReference.getNext();
+		}
 
-        Node<T> headReference = head;
-        for (int i = 0; i < index; i++) {
-            headReference = headReference.getNext();
-        }
+		if (headReference == head) {
+			head = head.getNext();
+		} else {
+			headReference.getPrevious().setNext(headReference.getNext());
+		}
 
-        if (headReference == head) {
-            head = head.getNext();
-        } else {
-            headReference.getPrevious().setNext(headReference.getNext());
-        }
+		size--;
+	}
 
-        size--;
-    }
+	public int size() {
+		return size;
+	}
 
-    public int size() {
-        return size;
-    }
+	private class Node<T> {
+		@Getter
+		private T data;
 
-    private class Node<T> {
-        @Getter
-        private T data;
+		@Getter
+		@Setter
+		private Node<T> next = null;
 
-        @Getter
-        @Setter
-        private Node<T> next = null;
+		@Getter
+		private Node<T> previous = null;
 
-        @Getter
-        private Node<T> previous = null;
-
-        public Node(T data, Node<T> previous) {
-            this.data = data;
-            this.previous = previous;
-        }
-    }
+		public Node(T data, Node<T> previous) {
+			this.data = data;
+			this.previous = previous;
+		}
+	}
 }

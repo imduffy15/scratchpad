@@ -4,7 +4,7 @@ import org.junit.Test;
 
 public class DoublyLinkedListTest {
 
-    @Test
+	@Test
     public void testAddingToALinkedList() {
         DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
 
@@ -16,8 +16,7 @@ public class DoublyLinkedListTest {
         assert list.size() == 2;
 
     }
-
-    @Test
+	@Test
     public void testRemovingSingleElementFromALinkedList() {
         DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
 
@@ -29,8 +28,7 @@ public class DoublyLinkedListTest {
         list.remove(0);
         assert list.size() == 0;
     }
-
-    @Test
+	@Test
     public void testRemovingElementsFromALinkedList() {
         DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
 
