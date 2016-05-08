@@ -3,6 +3,9 @@ package ie.ianduffy.scratchpad.binarytree;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BinaryTree<T extends Comparable> {
 
 	private Node<T> root = null;
@@ -77,6 +80,39 @@ public class BinaryTree<T extends Comparable> {
 			return true;
 		}
 	}
+
+	public List<T> preOrder() {
+		return preOrder(root, new ArrayList<T>());
+	}
+
+	public List<T> preOrder(Node<T> root, List<T> results) {
+		results.add(root.getData());
+		if(root.getLeft() != null) preOrder(root.getLeft(), results);
+		if(root.getRight() != null) preOrder(root.getRight(), results);
+		return results;
+	}
+
+    public List<T> inOrder() {
+        return inOrder(root, new ArrayList<T>());
+    }
+
+    public List<T> inOrder(Node<T> root, List<T> results) {
+        if(root.getLeft() != null) inOrder(root.getLeft(), results);
+        results.add(root.getData());
+        if(root.getRight() != null) inOrder(root.getRight(), results);
+        return results;
+    }
+
+    public List<T> postOrder() {
+        return postOrder(root, new ArrayList<T>());
+    }
+
+    public List<T> postOrder(Node<T> root, List<T> results) {
+        if(root.getLeft() != null) postOrder(root.getLeft(), results);
+        if(root.getRight() != null) postOrder(root.getRight(), results);
+        results.add(root.getData());
+        return results;
+    }
 
 	public int size() {
 		return size;

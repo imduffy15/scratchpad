@@ -2,6 +2,8 @@ package ie.ianduffy.scratchpad.binarytree;
 
 import org.junit.Test;
 
+import java.util.List;
+
 public class BinaryTreeTest {
 
 	@Test
@@ -66,5 +68,93 @@ public class BinaryTreeTest {
 
         assert binaryTree.max() == 100;
 
+    }
+
+    @Test
+    public void testPreOrder() {
+        BinaryTree<Integer> binaryTree = new BinaryTree<>();
+        binaryTree.add(7);
+        binaryTree.add(1);
+        binaryTree.add(0);
+        binaryTree.add(3);
+        binaryTree.add(2);
+        binaryTree.add(5);
+        binaryTree.add(4);
+        binaryTree.add(6);
+        binaryTree.add(9);
+        binaryTree.add(8);
+        binaryTree.add(10);
+
+        List<Integer> result = binaryTree.preOrder();
+        assert result.get(0) == 7;
+        assert result.get(1) == 1;
+        assert result.get(2) == 0;
+        assert result.get(3) == 3;
+        assert result.get(4) == 2;
+        assert result.get(5) == 5;
+        assert result.get(6) == 4;
+        assert result.get(7) == 6;
+        assert result.get(8) == 9;
+        assert result.get(9) == 8;
+        assert result.get(10) == 10;
+    }
+
+    @Test
+    public void testInorder() {
+        BinaryTree<Integer> binaryTree = new BinaryTree<>();
+        binaryTree.add(7);
+        binaryTree.add(1);
+        binaryTree.add(0);
+        binaryTree.add(3);
+        binaryTree.add(2);
+        binaryTree.add(5);
+        binaryTree.add(4);
+        binaryTree.add(6);
+        binaryTree.add(9);
+        binaryTree.add(8);
+        binaryTree.add(10);
+
+        List<Integer> result = binaryTree.inOrder();
+        assert result.get(0) == 0;
+        assert result.get(1) == 1;
+        assert result.get(2) == 2;
+        assert result.get(3) == 3;
+        assert result.get(4) == 4;
+        assert result.get(5) == 5;
+        assert result.get(6) == 6;
+        assert result.get(7) == 7;
+        assert result.get(8) == 8;
+        assert result.get(9) == 9;
+        assert result.get(10) == 10;
+    }
+
+
+    @Test
+    public void testPostOrder() {
+        BinaryTree<Integer> binaryTree = new BinaryTree<>();
+        binaryTree.add(7);
+        binaryTree.add(1);
+        binaryTree.add(0);
+        binaryTree.add(3);
+        binaryTree.add(2);
+        binaryTree.add(5);
+        binaryTree.add(4);
+        binaryTree.add(6);
+        binaryTree.add(9);
+        binaryTree.add(8);
+        binaryTree.add(10);
+
+        List<Integer> result = binaryTree.postOrder();
+        assert result.get(0) == 0;
+        assert result.get(1) == 2;
+        assert result.get(2) == 4;
+        assert result.get(3) == 6;
+        assert result.get(4) == 5;
+        assert result.get(5) == 3;
+        assert result.get(6) == 1;
+        assert result.get(7) == 8;
+        assert result.get(8) == 10;
+        assert result.get(9) == 9;
+        assert result.get(10) == 7;
     }
 }
