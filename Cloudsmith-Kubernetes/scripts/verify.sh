@@ -3,7 +3,7 @@
 # (2) the demo Pod was mutated by Kyverno.
 set -euo pipefail
 
-NS="${1:-team-a}"
+NS="${1:-demo-a}"
 PASS=0 FAIL=0
 
 check() { # description  actual  expected

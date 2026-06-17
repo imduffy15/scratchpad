@@ -64,14 +64,16 @@ EOF
   dynamic)
     for i in $(seq 1 "$COUNT"); do
       ns="$(ns_name "$i")"
+      # NOTE: deliberately NOT labelled cloudsmith-pull-secret=enabled — these
+      # namespaces use their OWN per-namespace identity (below), so we must keep
+      # the shared ClusterExternalSecret from also writing cloudsmith-pull-secret
+      # here (two owners of the same secret name would conflict).
       cat <<EOF
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: ${ns}
-  labels:
-    cloudsmith-pull-secret: "enabled"
 ---
 apiVersion: v1
 kind: ServiceAccount

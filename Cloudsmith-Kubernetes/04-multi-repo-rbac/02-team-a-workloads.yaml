@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# Workload in namespace team-a — the mirror image of the team-b case:
+#   ok-team-a   explicit .../team-a/... -> AUTHORISED (ns-team-a has Read on
+#               team-a). The very repo team-b was forbidden from, team-a pulls
+#               fine — proving the deny is per-service, not a broken image.
+# (team-a pulling .../team-b/... would likewise be 403 — left as an exercise.)
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ok-team-a
+  namespace: team-a
+  labels: { app: ok-team-a }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ok-team-a } }
+  template:
+    metadata: { labels: { app: ok-team-a } }
+    spec:
+      containers:
+        - name: app
+          image: docker.cloudsmith.io/iduffy-demo/team-a/sample-app:1.0

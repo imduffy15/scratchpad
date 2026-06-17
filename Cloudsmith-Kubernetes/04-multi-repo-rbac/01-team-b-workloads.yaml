@@ -1,0 +1,65 @@
+# ---------------------------------------------------------------------------
+# Workloads in namespace team-b. Kyverno injects the team-b pull secret (the
+# ns-team-b identity) into every Pod. The three cases prove the RBAC model:
+#
+#   (1) ok-upstream   ubuntu:latest -> rewritten to .../default/ubuntu:latest
+#                     -> PULLS: every service can read the shared upstream repo.
+#   (2) ok-team-b     explicit .../team-b/... (skipped by the rewrite guard)
+#                     -> AUTHORISED: ns-team-b has Read on team-b.
+#                        (Running if the image exists; 404 Not Found if empty —
+#                        either way NOT a 403, proving auth succeeded.)
+#   (3) denied-team-a explicit .../team-a/... (skipped by the rewrite guard)
+#                     -> 403 Forbidden: ns-team-b has NO Read on team-a.
+# ---------------------------------------------------------------------------
+
+# (1) upstream image — works for everyone
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ok-upstream
+  namespace: team-b
+  labels: { app: ok-upstream }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ok-upstream } }
+  template:
+    metadata: { labels: { app: ok-upstream } }
+    spec:
+      containers:
+        - name: app
+          image: ubuntu:latest
+          command: ["sleep", "infinity"]
+---
+# (2) team-b's OWN private repo — authorised
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ok-team-b
+  namespace: team-b
+  labels: { app: ok-team-b }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ok-team-b } }
+  template:
+    metadata: { labels: { app: ok-team-b } }
+    spec:
+      containers:
+        - name: app
+          image: docker.cloudsmith.io/iduffy-demo/team-b/sample-app:1.0
+---
+# (3) the OTHER team's private repo — DENIED (403)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: denied-team-a
+  namespace: team-b
+  labels: { app: denied-team-a }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: denied-team-a } }
+  template:
+    metadata: { labels: { app: denied-team-a } }
+    spec:
+      containers:
+        - name: app
+          image: docker.cloudsmith.io/iduffy-demo/team-a/sample-app:1.0

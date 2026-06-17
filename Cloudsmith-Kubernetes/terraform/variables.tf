@@ -97,6 +97,17 @@ variable "dynamic_namespaces" {
   default     = ["team-a", "team-b"]
 }
 
+variable "team_repositories" {
+  description = <<-EOT
+    Namespaces that ALSO get their own PRIVATE Cloudsmith repository (first-party
+    images), readable only by that team's per-namespace service. Used by the
+    multi-repo RBAC demo (04-multi-repo-rbac/). Each must also appear in
+    var.dynamic_namespaces. Set [] to skip creating private repos (e.g. at scale).
+  EOT
+  type        = list(string)
+  default     = ["team-a", "team-b"]
+}
+
 variable "per_namespace_sa_name" {
   description = "Name of the per-namespace Kubernetes ServiceAccount used by the dynamic path (its subject is routed by Cloudsmith)."
   type        = string

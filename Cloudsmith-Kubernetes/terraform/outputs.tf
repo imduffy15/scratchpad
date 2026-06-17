@@ -18,6 +18,11 @@ output "per_namespace_service_slugs" {
   value       = { for ns, svc in cloudsmith_service.per_namespace : ns => svc.slug }
 }
 
+output "team_repository_slugs" {
+  description = "team -> private repository slug (readable only by that team's service)."
+  value       = { for k, r in cloudsmith_repository.team : k => r.slug }
+}
+
 output "docker_upstreams" {
   description = "Configured Docker upstreams (name -> url @ priority) on the repository."
   value       = { for k, u in cloudsmith_repository_upstream.docker : k => "${u.upstream_url} (priority ${u.priority}, ${u.mode})" }

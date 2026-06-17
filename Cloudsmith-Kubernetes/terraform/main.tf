@@ -106,6 +106,37 @@ resource "cloudsmith_repository_privileges" "pull" {
   }
 }
 
+# --- Per-team PRIVATE repositories + asymmetric privileges ------------------
+# Each team gets its own private repo for first-party images. ONLY that team's
+# per-namespace service can Read it — this is what makes a cross-team pull fail
+# (e.g. namespace team-b cannot pull docker.cloudsmith.io/<org>/team-a/...).
+# Every team service still has Read on the shared `default` repo above, so all
+# of them can pull the upstream-proxied public images.
+#
+# NOTE: each entry must also be in var.dynamic_namespaces (so its per-namespace
+# service exists). The defaults keep them in sync.
+resource "cloudsmith_repository" "team" {
+  for_each = toset(var.team_repositories)
+
+  name        = each.key
+  slug        = each.key
+  namespace   = data.cloudsmith_organization.org.slug_perm
+  description = "Private first-party repository for team ${each.key}"
+}
+
+resource "cloudsmith_repository_privileges" "team" {
+  for_each = cloudsmith_repository.team
+
+  organization = data.cloudsmith_organization.org.slug
+  repository   = each.value.slug
+
+  # Only this team's service can read its private repo.
+  service {
+    privilege = "Read"
+    slug      = cloudsmith_service.per_namespace[each.key].slug
+  }
+}
+
 # --- OIDC: static catch-all -------------------------------------------------
 # Trusts the central ESO ServiceAccount subject and maps it to the shared
 # service. This single provider serves every namespace via the

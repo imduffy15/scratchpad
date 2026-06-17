@@ -31,7 +31,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payments-api
-  namespace: team-a
+  namespace: demo-a
   labels:
     app: payments-api
 spec:
@@ -54,7 +54,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: multi-registry-demo
-  namespace: team-a
+  namespace: demo-a
   labels:
     app: multi-registry-demo
 spec:

@@ -1,0 +1,126 @@
+# ---------------------------------------------------------------------------
+# Per-team identities for the multi-repo RBAC demo.
+#
+# Each team namespace federates with its OWN Cloudsmith service via the DYNAMIC
+# OIDC provider (created by Terraform): the per-namespace ServiceAccount
+# `cloudsmith-pull` -> subject system:serviceaccount:<ns>:cloudsmith-pull ->
+# Cloudsmith service `ns-<ns>`. That service has Read on:
+#   * the team's private repo  (team-a -> ns-team-a, team-b -> ns-team-b)
+#   * the shared `default` repo (Docker upstreams — all services can read)
+# and NOT on the other team's private repo. That asymmetry is what produces the
+# pull failures demonstrated in 01-/02-.
+#
+# IMPORTANT: these namespaces are deliberately NOT labelled
+# `cloudsmith-pull-secret=enabled`, so the cluster-wide (shared) ClusterExternalSecret
+# does not also write a secret here — each team uses only its own identity.
+# ---------------------------------------------------------------------------
+
+# ===== team-a ==============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudsmith-pull
+  namespace: team-a
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: CloudsmithAccessToken
+metadata:
+  name: cloudsmith-token
+  namespace: team-a
+spec:
+  apiUrl: "https://api.cloudsmith.io"
+  orgSlug: "iduffy-demo"
+  serviceSlug: "ns-team-a"   # dynamic OIDC validates subject->service mapping
+  serviceAccountRef:
+    name: "cloudsmith-pull"
+    namespace: "team-a"
+    audiences:
+      - "https://api.cloudsmith.io"
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudsmith-pull-secret
+  namespace: team-a
+spec:
+  refreshInterval: 50m
+  target:
+    name: cloudsmith-pull-secret
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: |
+          {
+            "auths": {
+              "docker.cloudsmith.io": {
+                "auth": "{{ .auth }}"
+              }
+            }
+          }
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: CloudsmithAccessToken
+          name: cloudsmith-token
+---
+# ===== team-b ==============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudsmith-pull
+  namespace: team-b
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: CloudsmithAccessToken
+metadata:
+  name: cloudsmith-token
+  namespace: team-b
+spec:
+  apiUrl: "https://api.cloudsmith.io"
+  orgSlug: "iduffy-demo"
+  serviceSlug: "ns-team-b"
+  serviceAccountRef:
+    name: "cloudsmith-pull"
+    namespace: "team-b"
+    audiences:
+      - "https://api.cloudsmith.io"
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudsmith-pull-secret
+  namespace: team-b
+spec:
+  refreshInterval: 50m
+  target:
+    name: cloudsmith-pull-secret
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: |
+          {
+            "auths": {
+              "docker.cloudsmith.io": {
+                "auth": "{{ .auth }}"
+              }
+            }
+          }
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: CloudsmithAccessToken
+          name: cloudsmith-token

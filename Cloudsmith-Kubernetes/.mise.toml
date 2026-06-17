@@ -64,6 +64,14 @@ run = "kubectl apply -f 03-demo/00-demo-namespaces.yaml -f 03-demo/01-sample-dep
 description = "Verify the pull secret + Kyverno mutation worked"
 run = "./scripts/verify.sh"
 
+[tasks.demo-rbac]
+description = "Apply the multi-repo RBAC demo (team-a/team-b, per-namespace identity)"
+run = "kubectl apply -f 04-multi-repo-rbac/00-team-identities.yaml -f 04-multi-repo-rbac/01-team-b-workloads.yaml -f 04-multi-repo-rbac/02-team-a-workloads.yaml"
+
+[tasks.verify-rbac]
+description = "Show which team pods pull and which get 403 (RBAC proof)"
+run = "./scripts/verify-rbac.sh"
+
 [tasks.bootstrap]
 description = "Full wired pipeline: Terraform -> values -> helmfile -> policy -> demo -> verify"
 run = """

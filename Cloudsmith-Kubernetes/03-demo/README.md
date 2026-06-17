@@ -9,14 +9,14 @@ kubectl apply -f 01-sample-deployment.yaml
 
 ## 1. The pull secret was distributed by External Secrets
 
-Even though you never created a Secret in `team-a` / `team-b`, it exists:
+Even though you never created a Secret in `demo-a` / `demo-b`, it exists:
 
 ```bash
-kubectl -n team-a get secret cloudsmith-pull-secret
+kubectl -n demo-a get secret cloudsmith-pull-secret
 # NAME                     TYPE                             DATA   AGE
 # cloudsmith-pull-secret   kubernetes.io/dockerconfigjson   1      30s
 
-kubectl -n team-a get secret cloudsmith-pull-secret \
+kubectl -n demo-a get secret cloudsmith-pull-secret \
   -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d | jq .
 # host should be docker.cloudsmith.io
 ```
@@ -29,12 +29,12 @@ right upstream):
 
 ```bash
 # internal-registry app:
-kubectl -n team-a get pod -l app=payments-api \
+kubectl -n demo-a get pod -l app=payments-api \
   -o jsonpath='{.items[0].spec.containers[0].image}'
 # -> docker.cloudsmith.io/iduffy-demo/default/payments/api:1.4
 
 # multi-registry pod (one container per source):
-kubectl -n team-a get pod -l app=multi-registry-demo \
+kubectl -n demo-a get pod -l app=multi-registry-demo \
   -o jsonpath='{range .items[0].spec.containers[*]}{.name}{"\t"}{.image}{"\n"}{end}'
 # dockerhub  docker.cloudsmith.io/iduffy-demo/default/ubuntu:latest
 # ghcr       docker.cloudsmith.io/iduffy-demo/default/kyverno/kyverno:v1.13.2
@@ -43,7 +43,7 @@ kubectl -n team-a get pod -l app=multi-registry-demo \
 # acr        docker.cloudsmith.io/iduffy-demo/default/dotnet/runtime:8.0
 
 # imagePullSecret injected:
-kubectl -n team-a get pod -l app=multi-registry-demo \
+kubectl -n demo-a get pod -l app=multi-registry-demo \
   -o jsonpath='{.items[0].spec.imagePullSecrets}'
 # -> [{"name":"cloudsmith-pull-secret"}]
 ```

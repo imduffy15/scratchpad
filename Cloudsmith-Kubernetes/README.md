@@ -95,10 +95,14 @@ Cloudsmith-Kubernetes/
 │   ├── 01-replace-image-registry.yaml          ← rewrites image host → Cloudsmith
 │   ├── 02-add-image-pull-secret.yaml           ← injects imagePullSecrets
 │   └── 03-combined-policy.yaml                  ← both rules in one ClusterPolicy (recommended)
-├── 03-demo/
+├── 03-demo/                                    ← basic shared-identity demo (demo-a/demo-b)
 │   ├── 00-demo-namespaces.yaml                  ← labelled namespaces
 │   ├── 01-sample-deployment.yaml               ← internal + dockerhub/ghcr/gcr/ecr/acr images
 │   └── README.md                               ← what to observe
+├── 04-multi-repo-rbac/                         ← multiple repos + service accounts; pull FAILURES
+│   ├── 00-team-identities.yaml                  ← team-a/team-b per-namespace identities
+│   ├── 01-team-b-workloads.yaml · 02-team-a-workloads.yaml
+│   ├── push-test-images.sh · README.md
 ├── scale/
 │   ├── generate-namespaces.sh                  ← spin up 100s of namespaces (shared|dynamic|tfvars)
 │   └── README.md                               ← scaling guide
@@ -208,7 +212,24 @@ rewrites the registry of every container/initContainer/ephemeralContainer to
 `docker.cloudsmith.io/iduffy-demo/default/...` and appends the `imagePullSecrets`.
 See [`02-kyverno/`](02-kyverno/).
 
-### 5. Scale to hundreds of namespaces — see [`scale/`](scale/README.md)
+### 5. Multiple repos & per-team permissions — see [`04-multi-repo-rbac/`](04-multi-repo-rbac/README.md)
+
+Beyond the shared identity, the dynamic path gives each team its **own** service
+with its **own** repo permissions. The demo proves the guard rails: a pod in
+`team-b` **can** pull from repo `team-b` and from the shared upstream repo
+`default`, but is **`403 Forbidden`** when it reaches for repo `team-a`.
+
+| Cloudsmith repo | `ns-team-a` | `ns-team-b` |
+| --- | :---: | :---: |
+| `default` (upstreams) | ✅ | ✅ |
+| `team-a` (private) | ✅ | ❌ 403 |
+| `team-b` (private) | ❌ 403 | ✅ |
+
+```bash
+mise run demo-rbac && mise run verify-rbac
+```
+
+### 6. Scale to hundreds of namespaces — see [`scale/`](scale/README.md)
 
 Adding a namespace is O(1): label it (shared identity) or add it to the Terraform
 list (per-namespace identity). `scale/generate-namespaces.sh` produces both the

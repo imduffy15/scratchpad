@@ -1,18 +1,21 @@
 # ---------------------------------------------------------------------------
-# Demo namespaces. The `cloudsmith-pull-secret: enabled` label is what causes
-# the ClusterExternalSecret to create the dockerconfigjson pull secret in each
-# of them. Label any future namespace the same way to onboard it.
+# Demo namespaces for the BASIC (shared-identity) transparent-rewrite demo.
+# The `cloudsmith-pull-secret: enabled` label is what causes the shared
+# ClusterExternalSecret to create the dockerconfigjson pull secret here.
+#
+# (The multi-repo RBAC demo uses its OWN namespaces team-a/team-b with
+# per-namespace identity — see ../04-multi-repo-rbac/.)
 # ---------------------------------------------------------------------------
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: team-a
+  name: demo-a
   labels:
     cloudsmith-pull-secret: "enabled"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: team-b
+  name: demo-b
   labels:
     cloudsmith-pull-secret: "enabled"
