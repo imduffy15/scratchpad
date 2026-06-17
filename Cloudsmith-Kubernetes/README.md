@@ -85,24 +85,16 @@ Cloudsmith-Kubernetes/
 │   ├── versions.tf · variables.tf · main.tf · outputs.tf
 │   ├── terraform.tfvars.example
 │   └── README.md
-├── 01-external-secrets/                        ← manual/reference manifests (example values)
-│   ├── 00-namespace-and-serviceaccount.yaml    ← ESO ns + central federated SA
-│   ├── 01-clustergenerator-cloudsmith.yaml     ← cluster-scoped Cloudsmith token generator
-│   ├── 02-clusterexternalsecret-pullsecret.yaml← fans dockerconfigjson into many namespaces
-│   └── 03-single-namespace-example.yaml        ← per-namespace alternative
-├── 02-kyverno/                                 ← parameterised via the cloudsmith-config ConfigMap
-│   ├── 00-cloudsmith-config.yaml               ← ConfigMap the policy reads (org/repo/registry)
-│   ├── 01-replace-image-registry.yaml          ← rewrites image host → Cloudsmith
-│   ├── 02-add-image-pull-secret.yaml           ← injects imagePullSecrets
-│   └── 03-combined-policy.yaml                  ← both rules in one ClusterPolicy (recommended)
-├── 03-demo/                                    ← basic shared-identity demo (demo-a/demo-b)
+├── kyverno/
+│   └── policy.yaml                             ← the one generic ClusterPolicy (reads the ConfigMap)
+├── demo/                                       ← basic shared-identity demo (demo-a/demo-b)
 │   ├── 00-demo-namespaces.yaml                  ← labelled namespaces
 │   ├── 01-sample-deployment.yaml               ← internal + dockerhub/ghcr/gcr/ecr/acr images
 │   └── README.md                               ← what to observe
-├── 04-multi-repo-rbac/                         ← multiple repos + service accounts; pull FAILURES
+├── demo-rbac/                                  ← multiple repos + service accounts; pull FAILURES
 │   ├── 00-team-identities.yaml                  ← team-a/team-b per-namespace identities
 │   ├── 01-team-b-workloads.yaml · 02-team-a-workloads.yaml
-│   ├── push-test-images.sh · README.md
+│   └── push-test-images.sh · README.md
 ├── scale/
 │   ├── generate-namespaces.sh                  ← spin up 100s of namespaces (shared|dynamic|tfvars)
 │   └── README.md                               ← scaling guide
@@ -111,7 +103,7 @@ Cloudsmith-Kubernetes/
 │   └── OIDC-ISSUER-SETUP.md                    ← exposing the issuer on EKS/GKE/AKS/self-hosted/local
 └── scripts/
     ├── tf-to-values.sh                         ← terraform outputs -> helm values
-    ├── configure.sh · install.sh · verify.sh
+    └── verify.sh · verify-rbac.sh
 ```
 
 ---
@@ -162,16 +154,14 @@ mise run bootstrap    # terraform apply → configure → helmfile → apply →
 | `mise run demo` | Applies the demo namespaces + multi-registry workloads. |
 | `mise run verify` | Asserts the pull secret was distributed and Pods were mutated. |
 
-> **No hardcoded placeholders in the wired path.** `terraform apply` → `tf-values`
-> → `helmfile` carries `org`/`repo`/`serviceSlug` straight from Terraform state into
-> the chart and the Kyverno ConfigMap. The numbered `01-/02-/03-` manifests are a
-> standalone **manual/reference** path (example values, restampable with
-> `scripts/configure.sh`).
+> **No hardcoded placeholders.** `terraform apply` → `tf-values` → `helmfile`
+> carries `org`/`repo`/`serviceSlug` straight from Terraform state into the chart
+> and the Kyverno ConfigMap. Inspect what gets applied with `mise run render`.
 
 Then:
 
 ```bash
-kubectl -n team-a get pod -l app=multi-registry-demo \
+kubectl -n demo-a get pod -l app=multi-registry-demo \
   -o jsonpath='{.items[0].spec.containers[*].image}'
 # every image now reads docker.cloudsmith.io/iduffy-demo/default/...
 ```
@@ -200,19 +190,19 @@ all of them.
 
 ### 3. External Secrets distributes the pull secret
 
-A `ClusterExternalSecret` runs the Cloudsmith generator and writes a
+The chart's `ClusterExternalSecret` runs the Cloudsmith generator and writes a
 `kubernetes.io/dockerconfigjson` secret named `cloudsmith-pull-secret` into every
 namespace labelled `cloudsmith-pull-secret=enabled`, refreshing it before the
-short-lived token expires. See [`01-external-secrets/`](01-external-secrets/).
+short-lived token expires. See [`chart/`](chart/).
 
 ### 4. Kyverno rewrites images & injects the secret
 
 One `ClusterPolicy` (`foreach` + `regex_replace_all`, with an idempotency guard)
 rewrites the registry of every container/initContainer/ephemeralContainer to
 `docker.cloudsmith.io/iduffy-demo/default/...` and appends the `imagePullSecrets`.
-See [`02-kyverno/`](02-kyverno/).
+See [`kyverno/policy.yaml`](kyverno/policy.yaml).
 
-### 5. Multiple repos & per-team permissions — see [`04-multi-repo-rbac/`](04-multi-repo-rbac/README.md)
+### 5. Multiple repos & per-team permissions — see [`demo-rbac/`](demo-rbac/README.md)
 
 Beyond the shared identity, the dynamic path gives each team its **own** service
 with its **own** repo permissions. The demo proves the guard rails: a pod in

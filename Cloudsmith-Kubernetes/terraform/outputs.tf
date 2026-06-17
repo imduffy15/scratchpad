@@ -37,9 +37,3 @@ output "oidc_dynamic_slug" {
   description = "Slug of the dynamic-mapping OIDC provider (null if no dynamic_namespaces)."
   value       = length(cloudsmith_oidc.dynamic) > 0 ? cloudsmith_oidc.dynamic[0].slug : null
 }
-
-# Copy/paste this to stamp the slugs into the Kubernetes manifests.
-output "configure_command" {
-  description = "Run this (or `mise run configure`) to update the manifests with the created slugs."
-  value       = "./scripts/configure.sh --org ${var.organization} --repo ${local.repository_slug} --service ${cloudsmith_service.shared.slug}"
-}

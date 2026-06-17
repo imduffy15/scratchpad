@@ -1,6 +1,7 @@
 # Demo: observe the transparent rewrite
 
-After `mise run install` (or `../scripts/install.sh`), apply the demo:
+After the operators + policy are installed (`mise run helmfile && mise run policy`),
+apply the demo (`mise run demo`, or directly):
 
 ```bash
 kubectl apply -f 00-demo-namespaces.yaml
@@ -53,7 +54,7 @@ The source manifests are unchanged — Kyverno mutates at admission.
 ## 3. Preview the mutation without applying (optional)
 
 ```bash
-kyverno apply ../02-kyverno/03-combined-policy.yaml \
+kyverno apply ../kyverno/policy.yaml \
   --resource 01-sample-deployment.yaml --policy-report
 ```
 

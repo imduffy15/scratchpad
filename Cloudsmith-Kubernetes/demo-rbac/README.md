@@ -36,8 +36,7 @@ the proof: team-b is *forbidden* on `team-a` but *permitted* on `team-b` and
 Prereqs: the operators are installed and the Terraform from `../terraform` is
 applied with `dynamic_namespaces` and `team_repositories` including `team-a` and
 `team-b` (the defaults), plus the dynamic OIDC issuer reachable. The Kyverno
-ConfigMap + policy must be present (`mise run helmfile && mise run policy`, or the
-manual path).
+ConfigMap + policy must be present (`mise run helmfile && mise run policy`).
 
 ```bash
 kubectl apply -f 00-team-identities.yaml      # per-team SA + generator + ExternalSecret

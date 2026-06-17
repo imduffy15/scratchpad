@@ -101,7 +101,7 @@ variable "team_repositories" {
   description = <<-EOT
     Namespaces that ALSO get their own PRIVATE Cloudsmith repository (first-party
     images), readable only by that team's per-namespace service. Used by the
-    multi-repo RBAC demo (04-multi-repo-rbac/). Each must also appear in
+    multi-repo RBAC demo (demo-rbac/). Each must also appear in
     var.dynamic_namespaces. Set [] to skip creating private repos (e.g. at scale).
   EOT
   type        = list(string)

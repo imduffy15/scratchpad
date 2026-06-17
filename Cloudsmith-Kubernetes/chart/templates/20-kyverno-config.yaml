@@ -1,5 +1,5 @@
 # The ConfigMap the Kyverno policy reads (registry prefix from Terraform org/repo,
-# pull-secret name). The policy itself (../02-kyverno) stays static & generic.
+# pull-secret name). The policy itself (../kyverno/policy.yaml) stays static & generic.
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -4,11 +4,11 @@
 #   3. cloudsmith-registry (local) (ESO resources + the Kyverno ConfigMap),
 #      with values fed FROM TERRAFORM via chart-values.generated.yaml.
 #
-# The Kyverno ClusterPolicy itself (../02-kyverno) is generic/static and is
-# applied separately (mise run policy / scripts/install.sh) — it reads the
-# ConfigMap this chart creates, so it needs no Terraform values baked in.
+# The Kyverno ClusterPolicy itself (kyverno/policy.yaml) is generic/static and is
+# applied separately (mise run policy) — it reads the ConfigMap this chart
+# creates, so it needs no Terraform values baked in.
 #
-#   mise run tf-values && helmfile sync   # (mise run install does both)
+#   mise run tf-values && helmfile sync   # (mise run helmfile does both)
 #
 # Requires the helm-diff plugin (mise run helmfile installs it).
 

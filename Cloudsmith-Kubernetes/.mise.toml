@@ -1,34 +1,26 @@
-# mise manages all runtimes and tooling for this example so everyone uses the
-# same versions. Install mise (https://mise.jdx.dev) then run:
+# mise manages all runtimes and tooling so everyone uses the same versions.
+# Install mise (https://mise.jdx.dev), then:
 #
-#   mise install            # install all the tools below
-#   mise run bootstrap      # terraform apply -> configure -> helmfile -> kubectl apply
+#   mise install        # install the tools below
+#   mise run bootstrap  # the whole thing: terraform -> values -> helmfile -> policy -> demo -> verify
 #
-# Individual steps are available as tasks (see [tasks] below):
-#   mise run tf-apply
-#   mise run configure
-#   mise run install
-#   mise run verify
-#
-# Override these with environment variables or a local mise.local.toml.
+# Individual steps are tasks: tf-apply, tf-values, helmfile, policy, demo, verify,
+# render, demo-rbac, verify-rbac. Run `mise tasks` to list them.
 
 [tools]
-terraform = "1.9.8"        # use opentofu = "1.8" instead if you prefer OpenTofu
+terraform = "1.9.8"        # or: opentofu = "1.8"
 helm = "3.16.3"
 helmfile = "0.169.1"
 kubectl = "1.31.3"
-kyverno = "1.13.2"         # kyverno CLI (aqua backend) for local policy testing
+kyverno = "1.13.2"         # CLI (aqua backend), for `mise run render`-style local checks
 jq = "1.7.1"
 
 [env]
-# Your Cloudsmith coordinates. These feed both Terraform and the manifest
-# placeholder replacement (mise run configure). Edit here or export in your shell.
+# CLOUDSMITH_ORG is used by scale/generate-namespaces.sh. The deploy values
+# (org/repo/serviceSlug) come from Terraform, not from here.
 CLOUDSMITH_ORG = "iduffy-demo"
-CLOUDSMITH_REPO = "default"
-CLOUDSMITH_OIDC_SERVICE = "kubernetes-image-pull"
-# CLOUDSMITH_API_KEY is read by both the Cloudsmith Terraform provider and the
-# Cloudsmith CLI. Export it in your shell or a (git-ignored) mise.local.toml:
-#   CLOUDSMITH_API_KEY = "..."
+# CLOUDSMITH_API_KEY is read by the Cloudsmith Terraform provider. Export it in
+# your shell or a git-ignored mise.local.toml: CLOUDSMITH_API_KEY = "..."
 
 [tasks.tf-init]
 description = "Initialise Terraform (Cloudsmith provider)"
@@ -47,6 +39,7 @@ run = "./scripts/tf-to-values.sh"
 
 [tasks.helmfile]
 description = "Install ESO + Kyverno + the cloudsmith-registry chart (values from Terraform)"
+depends = ["tf-values"]
 run = """
 helm plugin install https://github.com/databus23/helm-diff 2>/dev/null || true
 helmfile sync
@@ -54,26 +47,30 @@ helmfile sync
 
 [tasks.policy]
 description = "Apply the generic Kyverno ClusterPolicy (reads the chart's ConfigMap)"
-run = "kubectl apply -f 02-kyverno/03-combined-policy.yaml"
+run = "kubectl apply -f kyverno/policy.yaml"
 
 [tasks.demo]
-description = "Apply the demo namespaces + multi-registry workloads"
-run = "kubectl apply -f 03-demo/00-demo-namespaces.yaml -f 03-demo/01-sample-deployment.yaml"
+description = "Apply the basic demo namespaces + multi-registry workloads"
+run = "kubectl apply -f demo/00-demo-namespaces.yaml -f demo/01-sample-deployment.yaml"
 
 [tasks.verify]
 description = "Verify the pull secret + Kyverno mutation worked"
 run = "./scripts/verify.sh"
 
+[tasks.render]
+description = "Render the chart locally to inspect the generated manifests"
+run = "helm template cloudsmith-registry ./chart -f chart-values.generated.yaml"
+
 [tasks.demo-rbac]
 description = "Apply the multi-repo RBAC demo (team-a/team-b, per-namespace identity)"
-run = "kubectl apply -f 04-multi-repo-rbac/00-team-identities.yaml -f 04-multi-repo-rbac/01-team-b-workloads.yaml -f 04-multi-repo-rbac/02-team-a-workloads.yaml"
+run = "kubectl apply -f demo-rbac/00-team-identities.yaml -f demo-rbac/01-team-b-workloads.yaml -f demo-rbac/02-team-a-workloads.yaml"
 
 [tasks.verify-rbac]
 description = "Show which team pods pull and which get 403 (RBAC proof)"
 run = "./scripts/verify-rbac.sh"
 
 [tasks.bootstrap]
-description = "Full wired pipeline: Terraform -> values -> helmfile -> policy -> demo -> verify"
+description = "Everything: terraform -> values -> helmfile -> policy -> demo -> verify"
 run = """
 mise run tf-apply
 mise run tf-values

@@ -31,19 +31,11 @@ kubectl get --raw /.well-known/openid-configuration | jq -r .issuer
 
 ## Wiring the outputs into Kubernetes
 
-**Wired path (recommended):** the outputs become Helm values automatically.
-`mise run tf-values` runs `scripts/tf-to-values.sh`, which reads `org_slug`,
-`repository_slug` and `shared_service_slug` and writes `chart-values.generated.yaml`
-— the values file the `cloudsmith-registry` chart consumes via helmfile. Nothing
-is hand-copied. `mise run bootstrap` does apply → tf-values → helmfile for you.
-
-**Manual path:** if you apply the static `01-/02-` manifests instead, stamp the
-slugs with the printed command:
-
-```bash
-terraform output -raw configure_command
-# ./scripts/configure.sh --org iduffy-demo --repo default --service <generated-service-slug>
-```
+The outputs become Helm values automatically. `mise run tf-values` runs
+`scripts/tf-to-values.sh`, which reads `org_slug`, `repository_slug` and
+`shared_service_slug` and writes `chart-values.generated.yaml` — the values file
+the `cloudsmith-registry` chart consumes via helmfile. Nothing is hand-copied;
+`mise run bootstrap` does apply → tf-values → helmfile for you.
 
 > `shared_service_slug` is what the ESO `CloudsmithAccessToken` generator needs as
 > `serviceSlug`; `org_slug` + `repository_slug` form the registry path
