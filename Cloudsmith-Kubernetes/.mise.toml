@@ -1,0 +1,76 @@
+# mise manages all runtimes and tooling for this example so everyone uses the
+# same versions. Install mise (https://mise.jdx.dev) then run:
+#
+#   mise install            # install all the tools below
+#   mise run bootstrap      # terraform apply -> configure -> helmfile -> kubectl apply
+#
+# Individual steps are available as tasks (see [tasks] below):
+#   mise run tf-apply
+#   mise run configure
+#   mise run install
+#   mise run verify
+#
+# Override these with environment variables or a local mise.local.toml.
+
+[tools]
+terraform = "1.9.8"        # use opentofu = "1.8" instead if you prefer OpenTofu
+helm = "3.16.3"
+helmfile = "0.169.1"
+kubectl = "1.31.3"
+kyverno = "1.13.2"         # kyverno CLI (aqua backend) for local policy testing
+jq = "1.7.1"
+
+[env]
+# Your Cloudsmith coordinates. These feed both Terraform and the manifest
+# placeholder replacement (mise run configure). Edit here or export in your shell.
+CLOUDSMITH_ORG = "iduffy-demo"
+CLOUDSMITH_REPO = "default"
+CLOUDSMITH_OIDC_SERVICE = "kubernetes-image-pull"
+# CLOUDSMITH_API_KEY is read by both the Cloudsmith Terraform provider and the
+# Cloudsmith CLI. Export it in your shell or a (git-ignored) mise.local.toml:
+#   CLOUDSMITH_API_KEY = "..."
+
+[tasks.tf-init]
+description = "Initialise Terraform (Cloudsmith provider)"
+dir = "terraform"
+run = "terraform init"
+
+[tasks.tf-apply]
+description = "Create the Cloudsmith repo, upstreams, services + OIDC via Terraform"
+dir = "terraform"
+depends = ["tf-init"]
+run = "terraform apply"
+
+[tasks.tf-values]
+description = "Render Terraform outputs into Helm values (chart-values.generated.yaml)"
+run = "./scripts/tf-to-values.sh"
+
+[tasks.helmfile]
+description = "Install ESO + Kyverno + the cloudsmith-registry chart (values from Terraform)"
+run = """
+helm plugin install https://github.com/databus23/helm-diff 2>/dev/null || true
+helmfile sync
+"""
+
+[tasks.policy]
+description = "Apply the generic Kyverno ClusterPolicy (reads the chart's ConfigMap)"
+run = "kubectl apply -f 02-kyverno/03-combined-policy.yaml"
+
+[tasks.demo]
+description = "Apply the demo namespaces + multi-registry workloads"
+run = "kubectl apply -f 03-demo/00-demo-namespaces.yaml -f 03-demo/01-sample-deployment.yaml"
+
+[tasks.verify]
+description = "Verify the pull secret + Kyverno mutation worked"
+run = "./scripts/verify.sh"
+
+[tasks.bootstrap]
+description = "Full wired pipeline: Terraform -> values -> helmfile -> policy -> demo -> verify"
+run = """
+mise run tf-apply
+mise run tf-values
+mise run helmfile
+mise run policy
+mise run demo
+mise run verify
+"""

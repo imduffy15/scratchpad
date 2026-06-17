@@ -4,16 +4,20 @@
 # Adapted from the official Kyverno "Replace Image Registry" sample:
 #   https://kyverno.io/policies/other/replace-image-registry/replace-image-registry/
 #
-# The regex captures an optional leading registry host (group 1) and the rest of
-# the reference (group 2: repo/image:tag), then prefixes group 2 with the
-# Cloudsmith Docker registry + your org/repo path. Examples:
+# Parameterised via the `cloudsmith-config` ConfigMap (00-cloudsmith-config.yaml)
+# loaded with a `context` — no hardcoded org/repo here. The regex captures an
+# optional leading registry host (group 1) and the rest of the reference
+# (group 2: repo/image:tag), then prefixes group 2 with cfg.data.registryPrefix.
+# Examples (with prefix docker.cloudsmith.io/iduffy-demo/default/):
 #
-#   nginx:1.25                       -> docker.cloudsmith.io/my-org/my-repo/nginx:1.25
-#   docker.io/library/redis:7        -> docker.cloudsmith.io/my-org/my-repo/library/redis:7
-#   ghcr.io/acme/api:v2              -> docker.cloudsmith.io/my-org/my-repo/acme/api:v2
+#   ubuntu:latest        -> docker.cloudsmith.io/iduffy-demo/default/ubuntu:latest
+#   ghcr.io/acme/api:v2  -> docker.cloudsmith.io/iduffy-demo/default/acme/api:v2
 #
-# A `foreach` precondition skips images that ALREADY point at Cloudsmith so the
+# A `foreach` precondition skips images already on the Cloudsmith host so the
 # rewrite is idempotent (no double-prefixing on Pod updates).
+#
+# NOTE: 03-combined-policy.yaml combines this with the pull-secret injection and
+# is the recommended single resource to apply.
 # ---------------------------------------------------------------------------
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
@@ -27,9 +31,8 @@ metadata:
     pod-policies.kyverno.io/autogen-controllers: none
     policies.kyverno.io/description: >-
       Rewrites the registry of every container, initContainer and
-      ephemeralContainer image to docker.cloudsmith.io/my-org/my-repo so that
-      all image pulls are served by Cloudsmith, without editing workload
-      manifests.
+      ephemeralContainer image to the Cloudsmith prefix from the
+      cloudsmith-config ConfigMap, without editing workload manifests.
 spec:
   background: false
   rules:
@@ -39,7 +42,7 @@ spec:
         any:
           - resources:
               kinds: ["Pod"]
-      exclude:
+      exclude: &exclude-system
         any:
           - resources:
               namespaces:
@@ -48,20 +51,24 @@ spec:
                 - kube-public
                 - external-secrets
                 - kyverno
+      context: &cfg
+        - name: cfg
+          configMap:
+            name: cloudsmith-config
+            namespace: kyverno
       mutate:
         foreach:
           - list: "request.object.spec.containers"
             preconditions:
               all:
-                # skip images already on Cloudsmith (idempotency guard)
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 containers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"
 
     # --- init containers -----------------------------------------------------
     - name: replace-registry-initcontainers
@@ -69,15 +76,8 @@ spec:
         any:
           - resources:
               kinds: ["Pod"]
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - kube-node-lease
-                - kube-public
-                - external-secrets
-                - kyverno
+      exclude: *exclude-system
+      context: *cfg
       preconditions:
         all:
           - key: "{{ request.object.spec.initContainers[] || `[]` | length(@) }}"
@@ -88,14 +88,14 @@ spec:
           - list: "request.object.spec.initContainers"
             preconditions:
               all:
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 initContainers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"
 
     # --- ephemeral containers (kubectl debug, etc.) --------------------------
     - name: replace-registry-ephemeralcontainers
@@ -103,15 +103,8 @@ spec:
         any:
           - resources:
               kinds: ["Pod"]
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - kube-node-lease
-                - kube-public
-                - external-secrets
-                - kyverno
+      exclude: *exclude-system
+      context: *cfg
       preconditions:
         all:
           - key: "{{ request.object.spec.ephemeralContainers[] || `[]` | length(@) }}"
@@ -122,11 +115,11 @@ spec:
           - list: "request.object.spec.ephemeralContainers"
             preconditions:
               all:
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 ephemeralContainers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"

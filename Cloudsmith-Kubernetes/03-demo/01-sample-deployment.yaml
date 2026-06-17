@@ -1,33 +1,84 @@
 # ---------------------------------------------------------------------------
-# A completely ordinary Deployment. Note:
-#   * image is a plain `nginx:1.25` (Docker Hub) — NO Cloudsmith reference.
-#   * there is NO imagePullSecrets block.
+# Ordinary workloads referencing a SPREAD of source registries — an internal
+# registry plus Docker Hub, GHCR, GCR, ECR and ACR. None of them mention
+# Cloudsmith and none set imagePullSecrets.
 #
-# After applying, Kyverno will mutate the running Pods so that:
-#   * image  -> docker.cloudsmith.io/my-org/my-repo/nginx:1.25
-#   * spec.imagePullSecrets -> [{name: cloudsmith-pull-secret}]
+# At admission Kyverno rewrites every image to
+#   docker.cloudsmith.io/iduffy-demo/default/<original-path>
+# and injects imagePullSecrets: [{name: cloudsmith-pull-secret}].
 #
-# This is the whole point: developers never have to know about Cloudsmith.
+# Cloudsmith's `default` repo has Docker upstreams (configured by Terraform) for
+# each source, so it transparently proxies/caches the upstream image. Example
+# rewrites:
+#
+#   registry.internal.example.com/payments/api:1.4  (internal)
+#       -> docker.cloudsmith.io/iduffy-demo/default/payments/api:1.4
+#   ubuntu:latest                                   (Docker Hub)
+#       -> docker.cloudsmith.io/iduffy-demo/default/ubuntu:latest
+#   ghcr.io/kyverno/kyverno:v1.13.2                 (GHCR)
+#       -> docker.cloudsmith.io/iduffy-demo/default/kyverno/kyverno:v1.13.2
+#   gcr.io/google-containers/pause:3.2              (GCR)
+#       -> docker.cloudsmith.io/iduffy-demo/default/google-containers/pause:3.2
+#   public.ecr.aws/docker/library/redis:7           (ECR public)
+#       -> docker.cloudsmith.io/iduffy-demo/default/docker/library/redis:7
+#   mcr.microsoft.com/dotnet/runtime:8.0            (ACR / MCR)
+#       -> docker.cloudsmith.io/iduffy-demo/default/dotnet/runtime:8.0
 # ---------------------------------------------------------------------------
+
+# (A) An internal-registry app — the "migrating away from our internal registry"
+#     case. Image keeps its path; only the host changes to Cloudsmith.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-app
+  name: payments-api
   namespace: team-a
   labels:
-    app: demo-app
+    app: payments-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: demo-app
+      app: payments-api
   template:
     metadata:
       labels:
-        app: demo-app
+        app: payments-api
     spec:
       containers:
-        - name: nginx
-          image: nginx:1.25
-          ports:
-            - containerPort: 80
+        - name: api
+          image: registry.internal.example.com/payments/api:1.4
+---
+# (B) A multi-registry Pod: one container per upstream so you can see every
+#     source registry get rewritten to the single Cloudsmith repo.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-registry-demo
+  namespace: team-a
+  labels:
+    app: multi-registry-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multi-registry-demo
+  template:
+    metadata:
+      labels:
+        app: multi-registry-demo
+    spec:
+      containers:
+        - name: dockerhub
+          image: ubuntu:latest
+          command: ["sleep", "infinity"]
+        - name: ghcr
+          image: ghcr.io/kyverno/kyverno:v1.13.2
+          command: ["sleep", "infinity"]
+        - name: gcr
+          image: gcr.io/google-containers/pause:3.2
+        - name: ecr
+          image: public.ecr.aws/docker/library/redis:7
+          command: ["sleep", "infinity"]
+        - name: acr
+          image: mcr.microsoft.com/dotnet/runtime:8.0
+          command: ["sleep", "infinity"]

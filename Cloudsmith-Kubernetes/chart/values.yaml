@@ -1,0 +1,30 @@
+# Defaults are intentionally minimal: org/repo/serviceSlug have NO baked-in value
+# and MUST be supplied — in the wired pipeline they come from Terraform outputs
+# via scripts/tf-to-values.sh (chart-values.generated.yaml). Templates `required`
+# them so a missing value fails loudly instead of deploying a placeholder.
+
+cloudsmith:
+  # docker.cloudsmith.io/<org>/<repo>
+  org: ""          # <- from terraform output org_slug
+  repo: ""         # <- from terraform output repository_slug
+  serviceSlug: ""  # <- from terraform output shared_service_slug
+  apiUrl: "https://api.cloudsmith.io"
+  audience: "https://api.cloudsmith.io"
+  registryHost: "docker.cloudsmith.io"
+
+eso:
+  namespace: external-secrets
+  serviceAccountName: cloudsmith-token-sa
+  # Label that selects namespaces to receive the pull secret.
+  namespaceSelectorLabel: cloudsmith-pull-secret
+  namespaceSelectorValue: "enabled"
+  refreshInterval: 50m
+  clusterRefreshTime: 1m
+
+pullSecret:
+  name: cloudsmith-pull-secret
+
+kyverno:
+  # Namespace where the cloudsmith-config ConfigMap is created (where the policy
+  # reads it from).
+  namespace: kyverno

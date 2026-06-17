@@ -24,8 +24,8 @@ spec:
   generator:
     cloudsmithAccessTokenSpec:
       apiUrl: "https://api.cloudsmith.io" # optional; this is the default
-      orgSlug: "my-org"                   # <-- your Cloudsmith org slug
-      serviceSlug: "my-oidc-service"      # <-- your Cloudsmith OIDC service slug
+      orgSlug: "iduffy-demo"                   # <-- your Cloudsmith org slug
+      serviceSlug: "kubernetes-image-pull"      # <-- your Cloudsmith OIDC service slug
       serviceAccountRef:
         name: "cloudsmith-token-sa"
         namespace: "external-secrets"
@@ -45,8 +45,8 @@ spec:
 #   namespace: team-a
 # spec:
 #   apiUrl: "https://api.cloudsmith.io"
-#   orgSlug: "my-org"
-#   serviceSlug: "my-oidc-service"
+#   orgSlug: "iduffy-demo"
+#   serviceSlug: "kubernetes-image-pull"
 #   serviceAccountRef:
 #     name: "cloudsmith-token-sa"
 #     namespace: "external-secrets"

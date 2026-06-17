@@ -1,0 +1,45 @@
+# Copy to terraform.tfvars and fill in. Do NOT commit real values.
+# (terraform.tfvars and *.auto.tfvars are git-ignored by .gitignore.)
+
+# Prefer exporting the API key instead of putting it here:
+#   export TF_VAR_cloudsmith_api_key="..."
+# cloudsmith_api_key = "your-cloudsmith-api-key"
+
+organization = "iduffy-demo"
+repository   = "default"
+
+# Set false if the repository already exists and Terraform should not create it.
+create_repository = true
+
+# Docker upstreams created on the repository. Defaults (in variables.tf) target
+# PUBLIC endpoints for dockerhub/ghcr/gcr/ecr/acr. Override for private ones:
+# docker_upstreams = {
+#   dockerhub = { upstream_url = "https://index.docker.io", priority = 1 }
+#   ghcr      = { upstream_url = "https://ghcr.io",         priority = 2,
+#                 auth_mode = "Username and Password",
+#                 auth_username = "my-gh-user", auth_secret = "ghp_xxx" }
+#   gcr       = { upstream_url = "https://europe-docker.pkg.dev", priority = 3,
+#                 auth_mode = "Token", auth_secret = "ya29.xxx" }
+#   ecr       = { upstream_url = "https://1234567890.dkr.ecr.eu-west-1.amazonaws.com",
+#                 priority = 4, auth_mode = "Token", auth_secret = "AWS-ECR-TOKEN" }
+#   acr       = { upstream_url = "https://myreg.azurecr.io", priority = 5,
+#                 auth_mode = "Username and Password",
+#                 auth_username = "sp-app-id", auth_secret = "sp-secret" }
+# }
+
+service_name = "Kubernetes Image Pull"
+oidc_name    = "kubernetes"
+
+# Per-namespace identity via the dynamic-mapping OIDC provider. Leave [] to use
+# only the static catch-all. At scale, generate this list:
+#   ../scale/generate-namespaces.sh 300 dynamic > namespaces.auto.tfvars
+dynamic_namespaces = ["team-a", "team-b"]
+# per_namespace_sa_name = "cloudsmith-pull"
+# mapping_claim         = "sub"   # or a namespace claim if your plan supports it
+
+# kubectl get --raw /.well-known/openid-configuration | jq -r .issuer
+cluster_issuer_url = "https://oidc.example-cluster.k8s.local"
+
+# Defaults usually fine:
+# service_account_subject = "system:serviceaccount:external-secrets:cloudsmith-token-sa"
+# audience                = "https://api.cloudsmith.io"

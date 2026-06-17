@@ -1,10 +1,13 @@
 # ---------------------------------------------------------------------------
-# RECOMMENDED: a single ClusterPolicy that both rewrites the image registry to
-# Cloudsmith AND injects the imagePullSecret. Apply THIS file instead of
-# 01-replace-image-registry.yaml + 02-add-image-pull-secret.yaml if you prefer
-# one resource.
+# RECOMMENDED single ClusterPolicy: rewrite every image to Cloudsmith AND inject
+# the imagePullSecret.
 #
-# (The split files 01/02 are provided for readability; this combines them.)
+# It is fully PARAMETERISED — org/repo/registry come from the `cloudsmith-config`
+# ConfigMap (see 00-cloudsmith-config.yaml), loaded per-rule via a `context`.
+# Nothing here is hardcoded to a specific Cloudsmith org/repo, so the same policy
+# works for the manual path and the Terraform-driven Helm pipeline alike.
+#
+# Apply order: 00-cloudsmith-config.yaml (ConfigMap) -> this policy.
 # ---------------------------------------------------------------------------
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
@@ -17,9 +20,9 @@ metadata:
     policies.kyverno.io/subject: Pod
     pod-policies.kyverno.io/autogen-controllers: none
     policies.kyverno.io/description: >-
-      Cluster-wide: rewrites every container image to docker.cloudsmith.io and
-      injects the cloudsmith-pull-secret imagePullSecret, so all image pulls go
-      through Cloudsmith without editing workload manifests.
+      Cluster-wide: rewrites every container image to the Cloudsmith registry
+      prefix from the cloudsmith-config ConfigMap and injects the pull secret,
+      so all image pulls go through Cloudsmith without editing manifests.
 spec:
   background: false
   rules:
@@ -38,19 +41,25 @@ spec:
                 - kube-public
                 - external-secrets
                 - kyverno
+      context: &cfg
+        - name: cfg
+          configMap:
+            name: cloudsmith-config
+            namespace: kyverno
       mutate:
         foreach:
           - list: "request.object.spec.containers"
             preconditions:
               all:
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                # skip images already on the Cloudsmith host (idempotency guard)
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 containers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"
 
     # 2) rewrite registry for initContainers --------------------------------
     - name: replace-registry-initcontainers
@@ -59,6 +68,7 @@ spec:
           - resources:
               kinds: ["Pod"]
       exclude: *exclude-system
+      context: *cfg
       preconditions:
         all:
           - key: "{{ request.object.spec.initContainers[] || `[]` | length(@) }}"
@@ -69,14 +79,14 @@ spec:
           - list: "request.object.spec.initContainers"
             preconditions:
               all:
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 initContainers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"
 
     # 3) rewrite registry for ephemeralContainers ---------------------------
     - name: replace-registry-ephemeralcontainers
@@ -85,6 +95,7 @@ spec:
           - resources:
               kinds: ["Pod"]
       exclude: *exclude-system
+      context: *cfg
       preconditions:
         all:
           - key: "{{ request.object.spec.ephemeralContainers[] || `[]` | length(@) }}"
@@ -95,14 +106,14 @@ spec:
           - list: "request.object.spec.ephemeralContainers"
             preconditions:
               all:
-                - key: "{{ regex_match('^docker\\.cloudsmith\\.io/.*', '{{element.image}}') }}"
+                - key: "{{ contains('{{element.image}}', '{{cfg.data.registryHost}}') }}"
                   operator: Equals
                   value: false
             patchStrategicMerge:
               spec:
                 ephemeralContainers:
                   - name: "{{ element.name }}"
-                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', 'docker.cloudsmith.io/my-org/my-repo/$2' )}}"
+                    image: "{{ regex_replace_all('^(localhost/|(?:[a-z0-9]+\\.)+[a-z0-9]+(?::[0-9]+)?/)?(.*)$', '{{element.image}}', '{{cfg.data.registryPrefix}}$2' )}}"
 
     # 4) inject the Cloudsmith imagePullSecret ------------------------------
     - name: add-cloudsmith-pull-secret
@@ -111,8 +122,9 @@ spec:
           - resources:
               kinds: ["Pod"]
       exclude: *exclude-system
+      context: *cfg
       mutate:
         patchStrategicMerge:
           spec:
             imagePullSecrets:
-              - name: cloudsmith-pull-secret
+              - name: "{{ cfg.data.pullSecretName }}"

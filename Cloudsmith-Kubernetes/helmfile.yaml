@@ -1,0 +1,48 @@
+# Installs everything that runs IN the cluster, in dependency order:
+#   1. External Secrets Operator   (CRDs: ClusterGenerator, ClusterExternalSecret)
+#   2. Kyverno                      (admission + the `kyverno` namespace)
+#   3. cloudsmith-registry (local) (ESO resources + the Kyverno ConfigMap),
+#      with values fed FROM TERRAFORM via chart-values.generated.yaml.
+#
+# The Kyverno ClusterPolicy itself (../02-kyverno) is generic/static and is
+# applied separately (mise run policy / scripts/install.sh) — it reads the
+# ConfigMap this chart creates, so it needs no Terraform values baked in.
+#
+#   mise run tf-values && helmfile sync   # (mise run install does both)
+#
+# Requires the helm-diff plugin (mise run helmfile installs it).
+
+repositories:
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+  - name: kyverno
+    url: https://kyverno.github.io/kyverno/
+
+releases:
+  - name: external-secrets
+    namespace: external-secrets
+    createNamespace: true
+    chart: external-secrets/external-secrets
+    version: 0.10.5
+    wait: true
+    values:
+      - installCRDs: true
+        processClusterGenerator: true
+
+  - name: kyverno
+    namespace: kyverno
+    createNamespace: true
+    chart: kyverno/kyverno
+    version: 3.3.3
+    wait: true
+
+  - name: cloudsmith-registry
+    namespace: external-secrets
+    chart: ./chart
+    needs:
+      - external-secrets/external-secrets
+      - kyverno/kyverno
+    # Values produced by `mise run tf-values` (scripts/tf-to-values.sh) from the
+    # Terraform outputs. Run that before `helmfile sync`.
+    values:
+      - chart-values.generated.yaml

@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# Configuration the Kyverno policy reads at runtime (via a `context` lookup), so
+# the policy itself contains NO hardcoded org/repo/registry values.
+#
+# In the wired pipeline this ConfigMap is created by the Helm chart from the
+# Terraform outputs (org/repo). For the manual path, configure.sh stamps it.
+#
+# Lives in the `kyverno` namespace because that's where the policy reads it from.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudsmith-config
+  namespace: kyverno
+data:
+  # docker.cloudsmith.io/<org>/<repo>/  — the prefix every image is rewritten to.
+  registryHost: "docker.cloudsmith.io"
+  registryPrefix: "docker.cloudsmith.io/iduffy-demo/default/"
+  pullSecretName: "cloudsmith-pull-secret"

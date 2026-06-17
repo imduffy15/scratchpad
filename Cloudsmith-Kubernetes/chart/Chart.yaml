@@ -1,0 +1,10 @@
+apiVersion: v2
+name: cloudsmith-registry
+description: >-
+  Wires Cloudsmith as a transparent cluster-wide Docker registry: the External
+  Secrets resources that distribute the image-pull secret, plus the Kyverno
+  config the mutating policy reads. All values come from Terraform outputs (see
+  scripts/tf-to-values.sh) — nothing is hardcoded.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

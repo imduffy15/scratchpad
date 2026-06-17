@@ -13,8 +13,8 @@ metadata:
   namespace: team-a
 spec:
   apiUrl: "https://api.cloudsmith.io" # optional, defaults to https://api.cloudsmith.io
-  orgSlug: "my-org"
-  serviceSlug: "my-oidc-service"
+  orgSlug: "iduffy-demo"
+  serviceSlug: "kubernetes-image-pull"
   serviceAccountRef:
     name: "cloudsmith-token-sa"
     namespace: "external-secrets"

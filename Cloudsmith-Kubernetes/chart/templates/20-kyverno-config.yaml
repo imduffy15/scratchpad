@@ -1,0 +1,11 @@
+# The ConfigMap the Kyverno policy reads (registry prefix from Terraform org/repo,
+# pull-secret name). The policy itself (../02-kyverno) stays static & generic.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudsmith-config
+  namespace: {{ .Values.kyverno.namespace }}
+data:
+  registryHost: {{ .Values.cloudsmith.registryHost | quote }}
+  registryPrefix: {{ include "cr.registryPrefix" . | quote }}
+  pullSecretName: {{ .Values.pullSecret.name | quote }}

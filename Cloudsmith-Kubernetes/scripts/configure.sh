@@ -28,13 +28,14 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "Configuring manifests under: $ROOT"
 echo "  org=$ORG repo=$REPO service=$SERVICE"
 
-# Order matters: replace the combined "my-org/my-repo" path first, then the
-# individual tokens, so we don't partially rewrite the registry path.
+# Re-targets the manifests from the baked-in demo values (iduffy-demo / default /
+# kubernetes-image-pull) to your own. Order matters: replace the combined
+# "<org>/<repo>" registry path first, then the individual tokens.
 find "$ROOT" -type f -name '*.yaml' -print0 | while IFS= read -r -d '' f; do
   sed -i \
-    -e "s#docker.cloudsmith.io/my-org/my-repo#docker.cloudsmith.io/${ORG}/${REPO}#g" \
-    -e "s/my-oidc-service/${SERVICE}/g" \
-    -e "s/orgSlug: \"my-org\"/orgSlug: \"${ORG}\"/g" \
+    -e "s#docker.cloudsmith.io/iduffy-demo/default#docker.cloudsmith.io/${ORG}/${REPO}#g" \
+    -e "s/serviceSlug: \"kubernetes-image-pull\"/serviceSlug: \"${SERVICE}\"/g" \
+    -e "s/orgSlug: \"iduffy-demo\"/orgSlug: \"${ORG}\"/g" \
     "$f"
 done
 
