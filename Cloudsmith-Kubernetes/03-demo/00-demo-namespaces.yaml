@@ -1,0 +1,18 @@
+# ---------------------------------------------------------------------------
+# Demo namespaces. The `cloudsmith-pull-secret: enabled` label is what causes
+# the ClusterExternalSecret to create the dockerconfigjson pull secret in each
+# of them. Label any future namespace the same way to onboard it.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+  labels:
+    cloudsmith-pull-secret: "enabled"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b
+  labels:
+    cloudsmith-pull-secret: "enabled"

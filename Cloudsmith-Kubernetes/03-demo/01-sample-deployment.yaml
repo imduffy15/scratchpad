@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# A completely ordinary Deployment. Note:
+#   * image is a plain `nginx:1.25` (Docker Hub) — NO Cloudsmith reference.
+#   * there is NO imagePullSecrets block.
+#
+# After applying, Kyverno will mutate the running Pods so that:
+#   * image  -> docker.cloudsmith.io/my-org/my-repo/nginx:1.25
+#   * spec.imagePullSecrets -> [{name: cloudsmith-pull-secret}]
+#
+# This is the whole point: developers never have to know about Cloudsmith.
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: team-a
+  labels:
+    app: demo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80

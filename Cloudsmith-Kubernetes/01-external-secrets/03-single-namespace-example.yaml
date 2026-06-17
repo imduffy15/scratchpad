@@ -1,0 +1,50 @@
+# ---------------------------------------------------------------------------
+# Simpler per-namespace alternative (NOT used by the quick-start, shown for
+# reference). Use this if you only need the pull secret in a single namespace
+# and don't want a ClusterExternalSecret / ClusterGenerator.
+#
+# This mirrors the upstream External Secrets Cloudsmith example:
+#   https://external-secrets.io/latest/api/generator/cloudsmith/
+# ---------------------------------------------------------------------------
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: CloudsmithAccessToken
+metadata:
+  name: my-cloudsmith-token
+  namespace: team-a
+spec:
+  apiUrl: "https://api.cloudsmith.io" # optional, defaults to https://api.cloudsmith.io
+  orgSlug: "my-org"
+  serviceSlug: "my-oidc-service"
+  serviceAccountRef:
+    name: "cloudsmith-token-sa"
+    namespace: "external-secrets"
+    audiences:
+      - "https://api.cloudsmith.io"
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudsmith-pull-secret
+  namespace: team-a
+spec:
+  refreshInterval: 50m # refresh before the token expires
+  target:
+    name: cloudsmith-pull-secret
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: |
+          {
+            "auths": {
+              "docker.cloudsmith.io": {
+                "auth": "{{ .auth }}"
+              }
+            }
+          }
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: CloudsmithAccessToken
+          name: my-cloudsmith-token
