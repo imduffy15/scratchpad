@@ -71,10 +71,15 @@ resource "cloudsmith_service" "shared" {
 
 # One identity per namespace for the dynamic-mapping path. Scale this to
 # hundreds of namespaces just by extending var.dynamic_namespaces.
+#
+# The name is already slug-safe ("ns-<namespace>") so Cloudsmith derives the slug
+# "ns-<namespace>" — which is exactly the `serviceSlug` the per-namespace ESO
+# generator requests (see scale/generate-namespaces.sh) and the service the
+# dynamic mapping routes that namespace's token to.
 resource "cloudsmith_service" "per_namespace" {
   for_each = toset(var.dynamic_namespaces)
 
-  name         = "k8s ${each.key}"
+  name         = local.per_ns_service_name[each.key]
   organization = data.cloudsmith_organization.org.slug_perm
   role         = "Member"
 }
